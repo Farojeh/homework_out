@@ -1,13 +1,21 @@
 import 'dart:async';
-import 'package:fitnessapp/utils/app_images.dart';
+import '../controller/datacont.dart';
+import 'package:fitnessapp/home.dart';
+import 'package:fitnessapp/splash_screen.dart';
 import 'package:fitnessapp/views/auth_pages/login_page/login_page.dart';
 import 'package:fitnessapp/views/auth_pages/register_page/register_page.dart';
 import 'package:fitnessapp/views/on_boarding/on_boarding.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+SharedPreferences? preference;
+ SharedPreferences? userInfo;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  preference = await SharedPreferences.getInstance();
+   userInfo=await SharedPreferences.getInstance();
   runApp(const MyApp());
 }
 
@@ -19,10 +27,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final controller = Get.put(Datacontroller() , permanent: true);
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () => Get.offAll(OnBoarding()));
+    Timer(const Duration(seconds: 3), () {
+      if(preference!.getInt("man")!= null){
+        controller.setmemoryman(preference!.getInt("man")!);
+        if(preference!.getString("image")!= null){controller.setmemoryimage(preference!.getString("image")!);}
+        Get.offAll(Home());
+      }
+     else{
+      Get.offAll(OnBoarding()) ;
+     }
+    //  Get.offAll(OnBoarding()) ;
+    } );
   }
 
   // This widget is the root of your application.
@@ -35,20 +54,7 @@ class _MyAppState extends State<MyApp> {
         '/login': (p0) => const LogInPage()
       },
       // initialRoute: '/',
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        body: SizedBox(
-          width: MediaQuery.sizeOf(context).width,
-          height: MediaQuery.sizeOf(context).height,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(Assets.imagesSplash),
-            ],
-          ),
-        ),
-      ),
+      home: const Splash()
     );
   }
 }

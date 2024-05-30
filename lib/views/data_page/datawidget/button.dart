@@ -1,5 +1,6 @@
 import 'package:fitnessapp/controller/datacont.dart';
 import 'package:fitnessapp/home.dart';
+import 'package:fitnessapp/main.dart';
 import 'package:fitnessapp/widgets/warning.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -71,7 +72,10 @@ class Button extends StatelessWidget {
                         }
                      //  print(cont.User_data);
                        cont.Load(false);
+                       preference!.setInt("man", controller.man);
+                       if(controller.base64String!= null){preference!.setString("image", controller.base64String!);}
                        Get.offAll(Home());
+                       print(preference!.getInt("is"));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: controller.basiccolor,

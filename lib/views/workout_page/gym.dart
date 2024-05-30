@@ -1,51 +1,30 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:fitnessapp/constans.dart';
-import 'package:fitnessapp/models/artical.dart';
-import 'package:fitnessapp/models/category.dart';
+import 'package:fitnessapp/controller/datacont.dart';
+import 'package:fitnessapp/controller/gymcon.dart';
+import 'package:fitnessapp/main.dart';
 import 'package:fitnessapp/models/ranex.dart';
+import 'package:fitnessapp/shimmer/shimmergym.dart';
+import 'package:fitnessapp/views/workout_page/artical.dart';
 import 'package:fitnessapp/views/workout_page/exer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
-//import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
 
 // ignore: must_be_immutable, camel_case_types
-class Home_gym extends StatelessWidget {
-  Home_gym({super.key});
+class Home_gym extends StatefulWidget {
+  const Home_gym({super.key});
 
-  List<Artical> articals = <Artical>[
-     Artical(
-      title: "Sports and depression",
-      img: "assets/images/sadd.jpg",
-    ),
-    Artical(
-      title: "Benefits of Yoga",
-      img: "assets/images/yogaa.jpg",
-    ),
-    Artical(
-      title: "Sports and permanent youth",
-      img: "assets/images/oldman.jpg",
-    ),
-    Artical(
-      title: "Apples and ideal weight",
-      img: "assets/images/appe.jpg",
-    ),
-  ];
+  @override
+  State<Home_gym> createState() => _Home_gymState();
+}
 
-  List<Categ> cat = <Categ>[
-    Categ(
-        title: "Strength",
-        image: "assets/images/strb.png",),
-    Categ(
-        title: "Cardio",
-        image: "assets/images/carb.png",),
-    Categ(
-        title: "Warmup",
-        image: "assets/images/wbb.png",),
-    Categ(
-        title: "Yoga",
-        image: "assets/images/yogb.png",),
-  ];
+// ignore: camel_case_types
+class _Home_gymState extends State<Home_gym> {
+final controller = Get.put(Datacontroller() , permanent: true);
+
 
   List<Randomex> ran = <Randomex>[
     Randomex(title: "on the bed", des: "can help build strength, endurance, and balance in different parts of body", img: "assets/images/bed.jpg"),
@@ -56,6 +35,44 @@ class Home_gym extends StatelessWidget {
     Randomex(title: "prolong sleep", des: "Some easy and effective exercisees to promote better sleep", img: "assets/images/sleep.jpg"),
     Randomex(title: "Facial exercises", des: "It can help tone and strengthen the muscles in your face", img:"assets/images/faical.jpg"),
   ];
+final control = Get.put(Gymcontroller() , permanent: true);
+final datacont = Get.put(Datacontroller(),permanent: true);
+ bool isloading = false ;
+ @override
+  void initState() {
+    if(control.load==false){
+       setState(() {
+        isloading = true;
+      });
+      Timer(Duration(milliseconds: 0), () async{ 
+       try{
+      await control.getCat();
+      await control.getartical();
+      }catch(error){
+       showDialog(
+            context: context,
+            builder: (ctxx) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(40)),
+                  title: const Text(
+                    'Warning',
+                    style: TextStyle(
+                        color: Color.fromARGB(255, 252, 93, 93), fontSize: 25),
+                    textAlign: TextAlign.center,
+                  ),
+                  content: Text(error.toString()),
+                ));
+      }
+      setState(() {
+        isloading = false;
+      });
+      });
+    }
+   /*  Future.delayed(/* Duration.zero */Duration(seconds: 2), () async {
+      
+    }); */
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,68 +83,80 @@ class Home_gym extends StatelessWidget {
         child: ListView(
           children: [
             top(context),
-            catside(context),
+            isloading? loadcat(context):catside(context),
             const SizedBox(
               height: 9,
             ),
-            articalside(context),
+             isloading? loadartical(context):articalside(context),
             titleside(context, "Random Exercises"),
             const SizedBox(
               height: 5,
             ),
-            randomexercise(context),
+            isloading? loadexr(context):randomexercise(context),
           ],
-        ),
+        )
       );
   }
 
-  
   Container catside(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 12),
-      height: MediaQuery.of(context).size.height * /* 0.155 */0.13,
+      margin: const EdgeInsets.only(top: 12 , left: 10),
+      height: MediaQuery.of(context).size.height * 0.13,
       width: MediaQuery.of(context).size.width,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: cat
-            .map((item) => SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.12,
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                        margin:const EdgeInsets.only(bottom: 6),
-                        height: MediaQuery.of(context).size.height * 0.09,
-                        width: MediaQuery.of(context).size.width * 0.18,
-                        decoration: BoxDecoration(
-                            
-                            color:Constans.test,
-                            borderRadius: BorderRadius.circular(18)),
-                        child: Image.asset(
-                          item.image,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: control.category.map((item) => Container(
+                margin: EdgeInsets.only(right: 12),
+                    height: MediaQuery.of(context).size.height * 0.12,
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: InkWell(
+                      onTap: (){
+                      //  print(preference!.getInt("man"));
+                       Get.to(Exercise(image:preference!.getInt("man")==2? item["women_image"]:item["men_image"],
+                        title: item["category_name"], des: item["description"],
+                        id: item["id"].toString(),
+                        level:null
+                        )
+                        );
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
-                            item.title,
-                            style: TextStyle(
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.027,
-                                color: Colors.black,
-                                fontFamily: "WorkSans",
-                                fontWeight: FontWeight.bold),
+                          Container(
+                            padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                            margin:const EdgeInsets.only(bottom: 6),
+                            height: MediaQuery.of(context).size.height * 0.09,
+                            width: MediaQuery.of(context).size.width * 0.18,
+                            decoration: BoxDecoration(
+                                
+                                color:Constans.test,
+                                borderRadius: BorderRadius.circular(18)),
+                            child: Image.network(
+                              "http://${datacont.ip}:8000/uploads/${item["image"]}",
+                              fit: BoxFit.contain,
+                            ),
                           ),
+                          Container(
+                            alignment: Alignment.center,
+                            child: 
+                              Text(
+                                item["category_name"],
+                                style: TextStyle(
+                                    fontSize:
+                                        MediaQuery.of(context).size.width * 0.027,
+                                    color: Colors.black,
+                                    fontFamily: "WorkSans",
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            
+                          )
                         ],
-                      )
-                    ],
-                  ),
-                ))
-            .toList(),
+                      ),
+                    ),
+                  ))
+              .toList(),
+        ),
       ),
     );
   }
@@ -189,10 +218,10 @@ class Home_gym extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(50),
-              child: Image.asset(
-                "assets/images/areej.jpg",
-                fit: BoxFit.cover,
-              ),
+              child: controller.base64String==null? Image.asset(
+                  "assets/images/pers.png",
+                  fit: BoxFit.cover,
+                ):Image.memory(base64Decode(controller.base64String!), fit: BoxFit.cover,)
             ),
           ),
         ],
@@ -227,7 +256,7 @@ class Home_gym extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.29,
       width: MediaQuery.of(context).size.width,
       child: CarouselSlider(
-          items: articals.map((item) {
+          items:control.articals.map((item) {
             return Stack(
               children: [
                 Card(
@@ -235,21 +264,26 @@ class Home_gym extends StatelessWidget {
                   elevation: 7,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),
-                  child: Container(
-                      height: MediaQuery.of(context).size.height * 0.27,
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              width: 0.5,
-                              color: Constans.test.withOpacity(0.5)),
-                          borderRadius: BorderRadius.circular(30)),
-                      width: double.infinity,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: Image.asset(
-                          item.img,
-                          fit: BoxFit.cover,
-                        ),
-                      )),
+                  child: InkWell(
+                    onTap: (){
+                      Get.to(Articalpage(title: item["title"], img:item["image"], articall:item["Article"], author:item["Author_Name"]));
+                    },
+                    child: Container(
+                        height: MediaQuery.of(context).size.height * 0.27,
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                                width: 0.5,
+                                color: Constans.test.withOpacity(0.5)),
+                            borderRadius: BorderRadius.circular(30)),
+                        width: double.infinity,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child:item["image"]!=null?Image.network("http://${datacont.ip}:8000/uploads/${item["image"]}",
+                            fit: BoxFit.cover,
+                          ):Image.asset("assets/images/yogaa.jpg",
+                          fit: BoxFit.cover,),
+                        )),
+                  ),
                 ),
                 Positioned(
                   bottom: 20,
@@ -267,7 +301,7 @@ class Home_gym extends StatelessWidget {
                         )),
                     child: Text(
                       textAlign: TextAlign.center,
-                      item.title,
+                      item["title"].toString(),
                       style:  TextStyle(fontSize: MediaQuery.of(context).size.width*0.045, color: Colors.white),
                       softWrap: true,
                       overflow: TextOverflow.fade,
@@ -283,11 +317,6 @@ class Home_gym extends StatelessWidget {
             height: MediaQuery.of(context).size.height * 0.27,
             initialPage: 0,
             enlargeCenterPage: true,
-            /* onPageChanged: (ind, _) {
-            setState(() {
-              index = ind;
-            });
-          }, */
           )),
     );
   }
@@ -298,7 +327,7 @@ class Home_gym extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             children: ran.map((item) => InkWell(
               onTap: (){
-                Get.to(Exercise(image: item.img, title: item.title,des: item.des,));
+              //  Get.to(Exercise(image: item.img, title: item.title,des: item.des,));
               },
               child: Card(
                 color: Colors.white,
@@ -380,6 +409,71 @@ class Home_gym extends StatelessWidget {
               ),
             )).toList(),
           );
+  }
+
+Container loadcat(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12 , left: 7),
+      height: MediaQuery.of(context).size.height * 0.13,
+      width: MediaQuery.of(context).size.width,
+      alignment: Alignment.center,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.1,
+        child: ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          primary: false,
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          itemCount: 4,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 11),
+            child: Shimmergym.Rectangle(
+              radius: 20,
+             height: MediaQuery.of(context).size.height * 0.05,
+             width: MediaQuery.of(context).size.width * 0.18,),
+          ),
+        ),
+      ),
+    );
+  }
+
+ SizedBox loadartical(BuildContext context) {
+  List art =[1,2,3];
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.29,
+      width: MediaQuery.of(context).size.width,
+      child: CarouselSlider(
+          items:art.map((item) {
+            return Shimmergym.Rectangle(
+              height: MediaQuery.of(context).size.height * 0.27,
+              width: MediaQuery.of(context).size.width,
+              radius: 30) ;
+          }).toList(),
+          options: CarouselOptions(
+            /*  autoPlay: true,
+          autoPlayInterval: Duration(seconds: 5), */
+            height: MediaQuery.of(context).size.height * 0.27,
+            initialPage: 0,
+            enlargeCenterPage: true,
+          )),
+    );
+  }
+
+ListView loadexr(BuildContext context) {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      primary: false,
+      shrinkWrap: true,
+      scrollDirection: Axis.vertical,
+      itemCount: 3,
+      itemBuilder: (context, index) => Padding(
+        padding: const  EdgeInsets.only(bottom: 14 , left: 14 , right: 14) ,
+        child: Shimmergym.Rectangle(
+          radius: 20,
+         height:MediaQuery.of(context).size.height*0.128 ,
+         width: MediaQuery.of(context).size.width ,),
+      ),
+    );
   }
 
 }

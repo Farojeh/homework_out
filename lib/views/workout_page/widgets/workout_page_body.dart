@@ -1,3 +1,5 @@
+import 'package:fitnessapp/constans.dart';
+import 'package:fitnessapp/controller/datacont.dart';
 import 'package:fitnessapp/controller/workout_page_controller.dart';
 import 'package:fitnessapp/views/workout_page/widgets/challenge_list_view.dart';
 import 'package:fitnessapp/views/workout_page/widgets/date_time_line.dart';
@@ -9,10 +11,11 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 class WorkoutPageBody extends StatelessWidget {
-   WorkoutPageBody({
+  WorkoutPageBody({
     super.key,
   });
-  final controller=Get.put(WorkoutPageController());
+  final controller = Get.put(WorkoutPageController());
+  final Datacontrol = Get.put(Datacontroller());
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -23,9 +26,15 @@ class WorkoutPageBody extends StatelessWidget {
           children: [
             DateTimeLine(),
             const SectionTitle(title: 'CHALLENGES'),
-            ChallengesListView(images: controller.challengesImages),
+            FutureBuilder(
+                future: controller.getChallenge(
+                    Datacontrol.token,
+                    'http://${Constans.host}:8000/api/trainer/challenge/getAll'),
+                builder: (context, snapshot) {
+                  return ChallengesListView(data: snapshot.data);
+                }),
             const SectionTitle(title: 'EXERCISES'),
-             ExercisesCategoryListView(),
+            ExercisesCategoryListView(),
             ExercisesListView()
           ],
         ),

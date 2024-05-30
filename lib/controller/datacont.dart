@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:fitnessapp/main.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
  import 'package:image_picker/image_picker.dart'; 
@@ -141,11 +143,15 @@ class Datacontroller extends GetxController {
 //image picker 
 final imagepicker = ImagePicker();
 File? pickedimage ;
+List<int> imageBytes = [];
+String? base64String ;
 
 void fetchimage()async{
  XFile? image = await imagepicker.pickImage(source: ImageSource.gallery);
  if(image == null){return;}
  pickedimage = File(image.path);
+ imageBytes = await pickedimage!.readAsBytes();
+ base64String = base64Encode(imageBytes);
  update();
 }
 
@@ -197,8 +203,9 @@ bool checkill(int num ){
    }
 
 //
-  String token="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMDYwZjM0MmRjYWY5NWEwZGNjM2ExNzE2ZGIzNjYyYWY2ZTUxM2U0NGU4M2FlZjI1NzQ1NDc5MmQwZjAyNWJjY2I5MTNkYTNmZmY2NDc1NmMiLCJpYXQiOjE3MTQzNzg0MjcuODM3Mzk5LCJuYmYiOjE3MTQzNzg0MjcuODM3NDAyLCJleHAiOjE3NDU5MTQ0MjcuNzA1MzkzLCJzdWIiOiIyIiwic2NvcGVzIjpbInVzZXIiXX0.D1pXYfNZr5RMewsc687mssDUTOeXnhVelem5GoVBz00ThFOMj29iuR_KZZhYkT1Y41_nI90VB073Mwuj4n3WGDydo2261xa9d9pwmHRPhBfDe7i2SxNLub41riC-HDcvGhDbMhwNZeLvXefP0ePNM249EHQjBb9yvXteHc5gSudGVFMw_zaBWBxZReaDLXMupmNRGySX6pOGkys0BqevGq6llD487CpmTv836CulAAu5TTFPsqruO5RLNygOrUGyumfM_rk1kgRjbDw6mWCBjM_RCiRzCXUt3meWP5omYiedghjUPIQhpQ_0ajh4pZq5jDeuSIN8SWU_J_IdJoRbgmkxkLdOneJ8-9i1epG1j2STJaHb8zVNd4tVjV1KEFxgJWLemsi6Tahrf_9NQAaoyJ3Xi_XVlOAr2QnTDub1H7q3-OIEd_SdOLIo1wNjiDsXSmVdyPLoPRs-t3_gUF5ZlF_CV99bIaOplY16jDr5M7uzUnpDhPSfODRmdZH0o68EoXeCSGOlbKXGWOAHNlG9CeOjGOC8T2AkYoVXH2Ol3L2-RXX9a2EsvJ0a1j0jiYlgvJkj1ZN05M-lONV_7Xlr0-7GpYHooMe70EA3wrMMZPQNkFAyKXpkj1vasedevz9EzoBCmqkne_TtvcZnXS0EQGDJBYTgMQ7BXyOdFZuE4ZM";
-   String baseurl ="http://192.168.43.27:8000/api/";
+  String ip="192.168.1.7";
+  String? token= userInfo?.getString("token") ;
+  String baseurl ="http://192.168.1.7:8000/api/";
  
   Map <String , String> User_data ={
     'gender':'',
@@ -259,11 +266,11 @@ bool checkill(int num ){
       },);
       request.fields.addAll(User_data);
       if(pickedimage!= null){
-      request.files.add(await http.MultipartFile.fromPath("image", pickedimage!.path));
+      request.files.add(await http.MultipartFile.fromPath("Image", pickedimage!.path));
       }
      var res= await request.send();
      var response = await http.Response.fromStream(res);
-     print(response.body);
+     print(response.statusCode.toString());
      if(response.statusCode == 500){
       throw 'No Internet , Please try again';
      }
@@ -280,7 +287,51 @@ void Load(bool value){
   update();
 }
 
+void setmemoryman(int value){
+  man = value ;
+  update();
+}
 
+void setmemoryimage(String value){
+  base64String = value ;
+  update();
+}
+
+
+
+
+
+
+void setlogout(){
+  index = 0;
+   heightman =350 ;
+   heightwoman = 340;
+   crman = Colors.black;
+   sizeman = 25;
+   weightman = FontWeight.normal;
+   crwoman = Colors.black;
+   sizewoman = 25;
+    weightwoman = FontWeight.normal;
+   man = 0;
+    leftman = 60;
+   bottomman = 30;
+   opacityman = 1;
+   rightwoman = 60;
+   bottomwoman = 30;
+   opacitywoman = 1;
+    selectgoal =''; 
+   selectfocusarea = 0 ;
+   initheight = 160;
+   initweight = 60;
+   pickedimage = null ;
+   days =[];
+   time = TimeOfDay.now();
+   selectill =0; 
+   percent = 1/6 ;
+   base64String= null ;
+   update();
+
+}
 
 
 
